@@ -1,0 +1,78 @@
+# ==================== 环境变量 / 密钥 (必须忽略) ====================
+.env
+.env-*
+.env.*
+*.env
+!**/.env.example
+
+# ==================== 编译输出 ====================
+target/
+build/
+out/
+*.class
+*.jar
+!lib/*.jar
+*.war
+
+# ==================== Spring Boot ====================
+*.original
+
+# ==================== IDE: IntelliJ IDEA ====================
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ==================== IDE: Eclipse / STS ====================
+.settings/
+.project
+.classpath
+.factorypath
+
+# ==================== IDE: VS Code ====================
+.vscode/
+.history/
+
+# ==================== IDE: 其他 ====================
+*.swp
+*.swo
+*~
+
+# ==================== Maven ====================
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ==================== 日志 ====================
+*.log
+logs/
+log/
+
+# ==================== 操作系统 ====================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ==================== 证书 / 密钥文件 ====================
+*.p12
+*.pfx
+*.key
+*.pem
+*.crt
+*.cer
+!**/certs-template/**
+
+# ==================== 本地配置覆盖 ====================
+application-local.yml
+application-local.properties
+application-prod.yml
