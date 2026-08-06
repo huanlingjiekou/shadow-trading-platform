@@ -122,6 +122,10 @@ wechat:
     cert-path: ${WECHAT_PAY_CERT_PATH:}
     # 支付通知地址
     notify-url: ${WECHAT_PAY_NOTIFY_URL:}
+    # Mock 模式开关 (环境变量 MOCK_ENABLED 控制)
+    # true: 执行真实签名与加解密，但不发送网络请求，返回模拟数据
+    # false: 走真实微信支付接口
+    mock-enabled: ${MOCK_ENABLED:false}
 
 # ==================== 日志 ====================
 logging:
