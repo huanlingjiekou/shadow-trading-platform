@@ -107,25 +107,54 @@ knife4j:
     enable-footer-custom: true
     footer-custom-content: "Apache License 2.0 | Copyright 2026 Shadow Trading Platform"
 
-# ==================== 微信支付 (环境变量引入) ====================
+# ==================== 支付宝配置 (IJPay, 环境变量引入) ====================
+alipay:
+  # 应用ID
+  app-id: ${ALIPAY_APP_ID:}
+  # 应用私钥 (PKCS8 格式字符串)
+  private-key: ${ALIPAY_PRIVATE_KEY:}
+  # 支付宝公钥 (用于验签)
+  alipay-public-key: ${ALIPAY_PUBLIC_KEY:}
+  # 网关地址 (沙箱: https://openapi-sandbox.dl.alipaydev.com/gateway.do | 正式: https://openapi.alipay.com/gateway.do)
+  gateway-url: ${ALIPAY_GATEWAY_URL:https://openapi.alipay.com/gateway.do}
+  # 编码
+  charset: ${ALIPAY_CHARSET:UTF-8}
+  # 数据格式
+  format: ${ALIPAY_FORMAT:JSON}
+  # 签名类型
+  sign-type: ${ALIPAY_SIGN_TYPE:RSA2}
+  # 异步通知回调地址
+  notify-url: ${ALIPAY_NOTIFY_URL:}
+  # 同步返回地址
+  return-url: ${ALIPAY_RETURN_URL:}
+  # Mock 模式开关 (环境变量 ALIPAY_MOCK_ENABLED 控制)
+  # true: 不发送真实网络请求，返回模拟支付链接/二维码
+  # false: 走真实支付宝接口
+  mock-enabled: ${ALIPAY_MOCK_ENABLED:true}
+
+# ==================== 微信支付配置 (IJPay Api-v3, 环境变量引入) ====================
 wechat:
   pay:
+    # 应用ID (公众号/小程序/APP)
+    app-id: ${WECHAT_PAY_APP_ID:}
     # 商户号
-    merchant-id: ${WECHAT_PAY_MERCHANT_ID:}
+    mch-id: ${WECHAT_PAY_MCH_ID:}
     # 商户API证书序列号
-    merchant-serial-number: ${WECHAT_PAY_MERCHANT_SERIAL_NUMBER:}
-    # 商户API V3密钥
+    mch-serial-no: ${WECHAT_PAY_MCH_SERIAL_NO:}
+    # 商户API V3密钥 (32位字符，用于AES-GCM加解密)
     api-v3-key: ${WECHAT_PAY_API_V3_KEY:}
-    # 商户私钥文件路径
+    # 商户私钥文件路径 (apiclient_key.pem)
     private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH:}
-    # 微信支付平台证书路径
+    # 商户证书文件路径 (apiclient_cert.pem)
     cert-path: ${WECHAT_PAY_CERT_PATH:}
+    # 微信支付平台证书路径 (wxp_platform_cert.pem, 用于验签)
+    platform-cert-path: ${WECHAT_PAY_PLATFORM_CERT_PATH:}
     # 支付通知地址
     notify-url: ${WECHAT_PAY_NOTIFY_URL:}
-    # Mock 模式开关 (环境变量 MOCK_ENABLED 控制)
-    # true: 执行真实签名与加解密，但不发送网络请求，返回模拟数据
+    # Mock 模式开关 (环境变量 WECHAT_PAY_MOCK_ENABLED 控制)
+    # true: 不发送真实网络请求，返回模拟 prepay_id
     # false: 走真实微信支付接口
-    mock-enabled: ${MOCK_ENABLED:false}
+    mock-enabled: ${WECHAT_PAY_MOCK_ENABLED:true}
 
 # ==================== 日志 ====================
 logging:

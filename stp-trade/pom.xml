@@ -74,10 +74,16 @@
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- 微信支付 SDK (官方 wechatpay-java) -->
+        <!-- IJPay 微信支付模块（Api-v2 与 Api-v3 统一封装） -->
         <dependency>
-            <groupId>com.github.wechatpay-apiv3</groupId>
-            <artifactId>wechatpay-java</artifactId>
+            <groupId>com.github.javen205</groupId>
+            <artifactId>IJPay-WxPay</artifactId>
+        </dependency>
+
+        <!-- IJPay 支付宝模块（普通公钥与证书模式） -->
+        <dependency>
+            <groupId>com.github.javen205</groupId>
+            <artifactId>IJPay-AliPay</artifactId>
         </dependency>
 
         <!-- Lombok -->
