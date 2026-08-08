@@ -1,5 +1,7 @@
 package com.shadowtradingplatform.trade.pay.domain.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.shadowtradingplatform.trade.config.CamelCaseNamingStrategy;
 import com.shadowtradingplatform.trade.pay.domain.enums.PayChannelEnum;
 import com.shadowtradingplatform.trade.pay.domain.enums.TradeTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,10 +12,14 @@ import lombok.Data;
  * 下单结果视图对象.
  *
  * <p>返回给前端调起支付所需的关键参数。</p>
+ *
+ * <p>使用 {@link JsonNaming} 覆盖全局 SNAKE_CASE 策略为 CamelCaseNamingStrategy，
+ * 确保返回前端的 JSON 字段为驼峰命名 (如 outTradeNo 而非 out_trade_no)。</p>
  */
 @Data
 @Builder
 @Schema(description = "下单结果")
+@JsonNaming(CamelCaseNamingStrategy.class)
 public class TradeResultVO {
 
     @Schema(description = "商户订单号")

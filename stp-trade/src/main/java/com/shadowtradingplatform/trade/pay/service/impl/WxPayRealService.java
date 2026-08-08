@@ -2,6 +2,8 @@ package com.shadowtradingplatform.trade.pay.service.impl;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ijpay.core.IJPayHttpResponse;
 import com.ijpay.core.enums.RequestMethodEnum;
 import com.ijpay.core.kit.AesUtil;
@@ -9,14 +11,14 @@ import com.ijpay.core.kit.WxPayKit;
 import com.ijpay.wxpay.WxPayApi;
 import com.ijpay.wxpay.enums.WxDomainEnum;
 import com.ijpay.wxpay.enums.v3.BasePayApiEnum;
-import com.ijpay.wxpay.model.v3.Amount;
-import com.ijpay.wxpay.model.v3.H5Info;
-import com.ijpay.wxpay.model.v3.Payer;
-import com.ijpay.wxpay.model.v3.SceneInfo;
-import com.ijpay.wxpay.model.v3.UnifiedOrderModel;
 import com.shadowtradingplatform.trade.config.WxPayProperties;
 import com.shadowtradingplatform.trade.pay.domain.enums.PayChannelEnum;
 import com.shadowtradingplatform.trade.pay.domain.enums.TradeStatusEnum;
+import com.shadowtradingplatform.trade.pay.domain.pojo.WxPayAmount;
+import com.shadowtradingplatform.trade.pay.domain.pojo.WxPayH5Info;
+import com.shadowtradingplatform.trade.pay.domain.pojo.WxPayPayer;
+import com.shadowtradingplatform.trade.pay.domain.pojo.WxPaySceneInfo;
+import com.shadowtradingplatform.trade.pay.domain.pojo.WxPayUnifiedOrderBizContent;
 import com.shadowtradingplatform.trade.pay.domain.req.WxPayTradeReq;
 import com.shadowtradingplatform.trade.pay.domain.vo.PayNotifyResultVO;
 import com.shadowtradingplatform.trade.pay.domain.vo.TradeResultVO;
@@ -55,6 +57,7 @@ import java.util.Map;
 public class WxPayRealService implements WxPayService {
 
     private final WxPayProperties properties;
+    private final ObjectMapper objectMapper;
 
     @PostConstruct
     public void init() {
@@ -71,25 +74,26 @@ public class WxPayRealService implements WxPayService {
         log.info("[WXPAY] 收到下单请求: outTradeNo={}, tradeType={}", req.getOutTradeNo(), req.getTradeType());
 
         try {
-            // 构造 v3 统一下单参数
-            Amount amount = Amount.builder()
-                    .total(req.getTotalFee())
-                    .currency("CNY")
-                    .build();
+            // 使用 POJO 构造 v3 统一下单参数 (@JsonNaming(SnakeCaseStrategy) 自动序列化为 snake_case JSON)
+            WxPayAmount amount = new WxPayAmount();
+            amount.setTotal(req.getTotalFee());
+            amount.setCurrency("CNY");
 
-            UnifiedOrderModel.UnifiedOrderModelBuilder builder = UnifiedOrderModel.builder()
-                    .appid(properties.getAppId())
-                    .mchid(properties.getMchId())
-                    .description(req.getDescription())
-                    .out_trade_no(req.getOutTradeNo())
-                    .amount(amount)
-                    .notify_url(properties.getNotifyUrl());
+            WxPayUnifiedOrderBizContent order = new WxPayUnifiedOrderBizContent();
+            order.setAppid(properties.getAppId());
+            order.setMchid(properties.getMchId());
+            order.setDescription(req.getDescription());
+            order.setOutTradeNo(req.getOutTradeNo());
+            order.setAmount(amount);
+            order.setNotifyUrl(properties.getNotifyUrl());
 
             // 按交易类型设置不同字段
             String apiPath;
             switch (req.getTradeType()) {
                 case JSAPI:
-                    builder.payer(Payer.builder().openid(req.getOpenid()).build());
+                    WxPayPayer payer = new WxPayPayer();
+                    payer.setOpenid(req.getOpenid());
+                    order.setPayer(payer);
                     apiPath = BasePayApiEnum.JS_API_PAY.toString();
                     break;
                 case NATIVE:
@@ -99,19 +103,24 @@ public class WxPayRealService implements WxPayService {
                     apiPath = BasePayApiEnum.APP_PAY.toString();
                     break;
                 case H5:
-                    SceneInfo sceneInfo = SceneInfo.builder()
-                            .payer_client_ip(req.getClientIp() != null ? req.getClientIp() : "127.0.0.1")
-                            .h5_info(H5Info.builder().type("Wap").build())
-                            .build();
-                    builder.scene_info(sceneInfo);
+                    WxPaySceneInfo sceneInfo = new WxPaySceneInfo();
+                    sceneInfo.setPayerClientIp(req.getClientIp() != null ? req.getClientIp() : "127.0.0.1");
+                    WxPayH5Info h5Info = new WxPayH5Info();
+                    h5Info.setType("Wap");
+                    sceneInfo.setH5Info(h5Info);
+                    order.setSceneInfo(sceneInfo);
                     apiPath = BasePayApiEnum.H5_PAY.toString();
                     break;
                 default:
                     throw new IllegalArgumentException("[WXPAY] 不支持的交易类型: " + req.getTradeType());
             }
 
-            UnifiedOrderModel orderModel = builder.build();
-            String body = JSONUtil.toJsonStr(orderModel);
+            String body;
+            try {
+                body = objectMapper.writeValueAsString(order);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("[WXPAY] 统一下单请求体序列化失败", e);
+            }
             log.info("[WXPAY] 统一下单请求体: {}", body);
 
             // 调用 IJPay v3 接口
@@ -144,7 +153,10 @@ public class WxPayRealService implements WxPayService {
                     qrCodeContent = result.getStr("code_url");
                     break;
                 case H5:
-                    payUrl = result.getJSONObject("h5_url").getStr("h5_url");
+                    JSONObject h5UrlObj = result.getJSONObject("h5_url");
+                    if (h5UrlObj != null) {
+                        payUrl = h5UrlObj.getStr("h5_url");
+                    }
                     break;
                 case JSAPI:
                     jsapiPayParams = buildJsapiPaySign(prepayId);

@@ -1,6 +1,5 @@
 package com.shadowtradingplatform.trade.pay.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
@@ -12,10 +11,13 @@ import com.alipay.api.response.AlipayTradeAppPayResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
 import com.alipay.api.response.AlipayTradeWapPayResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shadowtradingplatform.trade.config.AliPayProperties;
 import com.shadowtradingplatform.trade.pay.domain.enums.PayChannelEnum;
 import com.shadowtradingplatform.trade.pay.domain.enums.TradeStatusEnum;
 import com.shadowtradingplatform.trade.pay.domain.enums.TradeTypeEnum;
+import com.shadowtradingplatform.trade.pay.domain.pojo.AlipayTradeBizContent;
 import com.shadowtradingplatform.trade.pay.domain.req.AliPayTradeReq;
 import com.shadowtradingplatform.trade.pay.domain.vo.PayNotifyResultVO;
 import com.shadowtradingplatform.trade.pay.domain.vo.TradeResultVO;
@@ -51,6 +53,7 @@ import java.util.Map;
 public class AliPayRealService implements AliPayService {
 
     private final AliPayProperties properties;
+    private final ObjectMapper objectMapper;
 
     private AlipayClient alipayClient;
 
@@ -78,23 +81,25 @@ public class AliPayRealService implements AliPayService {
         log.info("[ALIPAY] 收到下单请求: outTradeNo={}, tradeType={}", req.getOutTradeNo(), req.getTradeType());
 
         try {
-            // 构造业务参数 (buyer_id 仅在当面付 SCAN 场景下传，WEB/WAP/APP 不支持该参数，
-            // 否则支付宝会返回 INVALID_PARAMETER 错误)
-            JSONObject bizContent = new JSONObject();
-            bizContent.put("out_trade_no", req.getOutTradeNo());
-            bizContent.put("subject", req.getSubject());
-            bizContent.put("total_amount", req.getTotalAmount().toPlainString());
-            if (req.getBody() != null) {
-                bizContent.put("body", req.getBody());
-            }
+            // 使用 POJO 构造业务参数 (@JsonNaming(SnakeCaseStrategy) 自动序列化为 snake_case JSON)
+            AlipayTradeBizContent bizContent = new AlipayTradeBizContent();
+            bizContent.setOutTradeNo(req.getOutTradeNo());
+            bizContent.setSubject(req.getSubject());
+            bizContent.setTotalAmount(req.getTotalAmount().toPlainString());
+            bizContent.setBody(req.getBody());
+            // buyer_id 仅在当面付 SCAN 场景下传，WEB/WAP/APP 不支持该参数
             if (req.getBuyerId() != null && req.getTradeType() == TradeTypeEnum.SCAN) {
-                bizContent.put("buyer_id", req.getBuyerId());
+                bizContent.setBuyerId(req.getBuyerId());
             }
-            // 超时时间 30 分钟
-            bizContent.put("timeout_express", "30m");
+            bizContent.setTimeoutExpress("30m");
 
-            // 打印实际请求体，便于排查 INVALID_PARAMETER 错误
-            log.info("[ALIPAY] bizContent={}", bizContent.toJSONString());
+            String bizContentJson;
+            try {
+                bizContentJson = objectMapper.writeValueAsString(bizContent);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("[ALIPAY] bizContent 序列化失败", e);
+            }
+            log.info("[ALIPAY] bizContent={}", bizContentJson);
 
             String payUrl = null;
             String qrCodeContent = null;
@@ -102,27 +107,26 @@ public class AliPayRealService implements AliPayService {
 
             switch (req.getTradeType()) {
                 case WEB: {
-                    // PC 网站支付
-                    // 关键: product_code 必须显式设置为 FAST_INSTANT_TRADE_PAY，
-                    // 否则支付宝网关返回 INVALID_PARAMETER
-                    bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
+                    // PC 网站支付: product_code=FAST_INSTANT_TRADE_PAY
+                    bizContent.setProductCode("FAST_INSTANT_TRADE_PAY");
+                    String json = objectMapper.writeValueAsString(bizContent);
                     AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
                     request.setNotifyUrl(properties.getNotifyUrl());
                     request.setReturnUrl(properties.getReturnUrl());
-                    request.setBizContent(bizContent.toJSONString());
+                    request.setBizContent(json);
                     AlipayTradePagePayResponse response = alipayClient.pageExecute(request);
                     payUrl = response.getBody();
                     log.info("[ALIPAY] PC 网站支付下单成功: subCode={}, subMsg={}", response.getSubCode(), response.getSubMsg());
                     break;
                 }
                 case WAP: {
-                    // 手机网站支付
-                    // 关键: product_code 必须显式设置为 QUICK_WAP_WAY
-                    bizContent.put("product_code", "QUICK_WAP_WAY");
+                    // 手机网站支付: product_code=QUICK_WAP_WAY
+                    bizContent.setProductCode("QUICK_WAP_WAY");
+                    String json = objectMapper.writeValueAsString(bizContent);
                     AlipayTradeWapPayRequest request = new AlipayTradeWapPayRequest();
                     request.setNotifyUrl(properties.getNotifyUrl());
                     request.setReturnUrl(properties.getReturnUrl());
-                    request.setBizContent(bizContent.toJSONString());
+                    request.setBizContent(json);
                     AlipayTradeWapPayResponse response = alipayClient.pageExecute(request);
                     payUrl = response.getBody();
                     log.info("[ALIPAY] 手机网站支付下单成功: subCode={}, subMsg={}", response.getSubCode(), response.getSubMsg());
@@ -130,9 +134,10 @@ public class AliPayRealService implements AliPayService {
                 }
                 case SCAN: {
                     // 当面付扫码 (预下单: 生成二维码链接)
+                    String json = objectMapper.writeValueAsString(bizContent);
                     AlipayTradePrecreateRequest request = new AlipayTradePrecreateRequest();
                     request.setNotifyUrl(properties.getNotifyUrl());
-                    request.setBizContent(bizContent.toJSONString());
+                    request.setBizContent(json);
                     AlipayTradePrecreateResponse response = alipayClient.execute(request);
                     if (response.isSuccess()) {
                         qrCodeContent = response.getQrCode();
@@ -144,9 +149,10 @@ public class AliPayRealService implements AliPayService {
                 }
                 case APP: {
                     // APP 支付
+                    String json = objectMapper.writeValueAsString(bizContent);
                     AlipayTradeAppPayRequest request = new AlipayTradeAppPayRequest();
                     request.setNotifyUrl(properties.getNotifyUrl());
-                    request.setBizContent(bizContent.toJSONString());
+                    request.setBizContent(json);
                     AlipayTradeAppPayResponse response = alipayClient.sdkExecute(request);
                     prepayId = response.getBody();
                     payUrl = response.getBody();

@@ -1,5 +1,7 @@
 package com.shadowtradingplatform.trade.pay.domain.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.shadowtradingplatform.trade.config.CamelCaseNamingStrategy;
 import com.shadowtradingplatform.trade.pay.domain.enums.PayChannelEnum;
 import com.shadowtradingplatform.trade.pay.domain.enums.TradeStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,10 +15,14 @@ import java.time.LocalDateTime;
  * 支付回调处理结果视图对象.
  *
  * <p>返回给支付平台作为响应（微信要求返回 SUCCESS/FAIL，支付宝要求返回 success/fail）。</p>
+ *
+ * <p>使用 {@link JsonNaming} 覆盖全局 SNAKE_CASE 策略为 CamelCaseNamingStrategy，
+ * 确保返回前端的 JSON 字段为驼峰命名。</p>
  */
 @Data
 @Builder
 @Schema(description = "支付回调处理结果")
+@JsonNaming(CamelCaseNamingStrategy.class)
 public class PayNotifyResultVO {
 
     @Schema(description = "返回给支付平台的状态字符串 (微信: SUCCESS/FAIL, 支付宝: success/fail)")

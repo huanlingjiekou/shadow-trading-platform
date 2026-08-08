@@ -225,7 +225,7 @@
 
             <div class="form-group">
                 <label>买家支付宝ID buyerId</label>
-                <input type="text" id="buyerId" value="2088102146225135">
+                <input type="text" id="buyerId" value="2088722107259663">
                 <div class="hint" id="buyerIdHint">当面付预下单时可空，沙箱默认买家账号</div>
             </div>
 
@@ -294,13 +294,14 @@
                 return;
             }
 
+            // 请求参数使用 snake_case 命名，与后端 Jackson 全局 SNAKE_CASE 策略对齐
             const payload = {
-                outTradeNo,
+                out_trade_no: outTradeNo,
                 subject,
-                totalAmount,
-                tradeType: tradeTypeMap[tradeTypeRaw],
+                total_amount: totalAmount,
+                trade_type: tradeTypeMap[tradeTypeRaw],
                 ...(body ? { body } : {}),
-                ...(buyerId ? { buyerId } : {})
+                ...(buyerId ? { buyer_id: buyerId } : {})
             };
 
             const btn = document.getElementById('submitBtn');
