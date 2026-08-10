@@ -37,12 +37,12 @@ public class JacksonConfig {
      *   <li>序列化 (后端→前端): camelCase Java 字段 → snake_case JSON (需 VO 覆盖)</li>
      * </ul>
      */
-    @Bean
-    @Primary
-    public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
-        ObjectMapper objectMapper = builder.createXmlMapper(false).build();
-        // 全局默认使用 snake_case 命名策略
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-        return objectMapper;
-    }
+//    @Bean
+//    @Primary
+//    public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
+//        ObjectMapper objectMapper = builder.createXmlMapper(false).build();
+//        // 全局默认使用 snake_case 命名策略
+//        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+//        return objectMapper;
+//    }
 }
