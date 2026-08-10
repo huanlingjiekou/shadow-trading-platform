@@ -1,4 +1,4 @@
-package com.shadowtradingplatform.trade.domain;
+package com.shadowtradingplatform.trade.domain.po;
 
 
 import java.math.BigDecimal;

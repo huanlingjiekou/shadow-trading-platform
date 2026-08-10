@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.shadowtradingplatform.trade.mapper.ProductTagRelMapper">
 
-    <resultMap id="BaseResultMap" type="com.shadowtradingplatform.trade.domain.ProductTagRel">
+    <resultMap id="BaseResultMap" type="com.shadowtradingplatform.trade.domain.po.ProductTagRel">
             <id property="product_id" column="product_id" />
             <id property="tag_id" column="tag_id" />
     </resultMap>

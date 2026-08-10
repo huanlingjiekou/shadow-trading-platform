@@ -1,7 +1,7 @@
 package com.shadowtradingplatform.trade.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.shadowtradingplatform.trade.domain.Tag;
+import com.shadowtradingplatform.trade.domain.po.Tag;
 import com.shadowtradingplatform.trade.service.TagService;
 import com.shadowtradingplatform.trade.mapper.TagMapper;
 import org.springframework.stereotype.Service;

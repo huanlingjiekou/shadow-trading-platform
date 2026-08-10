@@ -1,6 +1,6 @@
 package com.shadowtradingplatform.trade.service;
 
-import com.shadowtradingplatform.trade.domain.UserCoupon;
+import com.shadowtradingplatform.trade.domain.po.UserCoupon;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

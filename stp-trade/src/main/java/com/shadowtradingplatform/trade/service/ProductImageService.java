@@ -1,6 +1,6 @@
 package com.shadowtradingplatform.trade.service;
 
-import com.shadowtradingplatform.trade.domain.ProductImage;
+import com.shadowtradingplatform.trade.domain.po.ProductImage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

@@ -1,7 +1,7 @@
 package com.shadowtradingplatform.trade.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.shadowtradingplatform.trade.domain.ProductTagRel;
+import com.shadowtradingplatform.trade.domain.po.ProductTagRel;
 import com.shadowtradingplatform.trade.service.ProductTagRelService;
 import com.shadowtradingplatform.trade.mapper.ProductTagRelMapper;
 import org.springframework.stereotype.Service;

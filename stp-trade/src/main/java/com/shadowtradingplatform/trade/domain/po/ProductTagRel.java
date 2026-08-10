@@ -1,4 +1,4 @@
-package com.shadowtradingplatform.trade.domain;
+package com.shadowtradingplatform.trade.domain.po;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;

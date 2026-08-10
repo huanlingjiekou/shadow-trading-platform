@@ -1,6 +1,6 @@
 package com.shadowtradingplatform.trade.service;
 
-import com.shadowtradingplatform.trade.domain.Cart;
+import com.shadowtradingplatform.trade.domain.po.Cart;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

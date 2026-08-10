@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shadowtradingplatform.trade.common.R;
 import com.shadowtradingplatform.trade.config.BusinessProperties;
 import com.shadowtradingplatform.trade.constant.AuthConstants;
-import com.shadowtradingplatform.trade.domain.User;
-import com.shadowtradingplatform.trade.domain.dto.LoginReqDTO;
+import com.shadowtradingplatform.trade.domain.po.User;
+import com.shadowtradingplatform.trade.domain.req.LoginRequire;
 import com.shadowtradingplatform.trade.domain.vo.UserInfoVO;
 import com.shadowtradingplatform.trade.mapper.UserMapper;
 import com.shadowtradingplatform.trade.service.UserService;
@@ -39,7 +39,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final ObjectMapper objectMapper;
 
     @Override
-    public R<UserInfoVO> login(LoginReqDTO req) {
+    public R<UserInfoVO> login(LoginRequire req) {
         try {
             // 1. 解密登录载荷 -> Map
             Map<String, Object> payload = loginCryptoUtil.decryptLoginPayload(

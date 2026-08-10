@@ -3,7 +3,7 @@ package com.shadowtradingplatform.trade.controller;
 import com.shadowtradingplatform.trade.common.R;
 import com.shadowtradingplatform.trade.constant.AuthConstants;
 import com.shadowtradingplatform.trade.context.UserContext;
-import com.shadowtradingplatform.trade.domain.dto.LoginReqDTO;
+import com.shadowtradingplatform.trade.domain.req.LoginRequire;
 import com.shadowtradingplatform.trade.domain.vo.UserInfoVO;
 import com.shadowtradingplatform.trade.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,9 +13,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -36,7 +36,7 @@ public class UserController {
      */
     @PostMapping("/login")
     @Operation(summary = "用户登录（RSA+AES 加密登录）")
-    public R<UserInfoVO> login(@Valid @RequestBody LoginReqDTO req) {
+    public R<UserInfoVO> login(@Valid @RequestBody LoginRequire req) {
         return userService.login(req);
     }
 
@@ -57,7 +57,7 @@ public class UserController {
      *
      * <p>若未登录（或 token 过期）返回 code=500，message=未登录。</p>
      */
-    @PostMapping("/user/info")
+    @GetMapping("/user/info")
     @Operation(summary = "获取当前登录用户信息")
     public R<UserInfoVO> info() {
         UserInfoVO user = UserContext.get();

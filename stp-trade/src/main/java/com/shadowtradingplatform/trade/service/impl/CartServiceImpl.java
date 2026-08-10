@@ -1,7 +1,7 @@
 package com.shadowtradingplatform.trade.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.shadowtradingplatform.trade.domain.Cart;
+import com.shadowtradingplatform.trade.domain.po.Cart;
 import com.shadowtradingplatform.trade.service.CartService;
 import com.shadowtradingplatform.trade.mapper.CartMapper;
 import org.springframework.stereotype.Service;

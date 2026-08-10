@@ -1,6 +1,6 @@
 package com.shadowtradingplatform.trade.service;
 
-import com.shadowtradingplatform.trade.domain.ProductTagRel;
+import com.shadowtradingplatform.trade.domain.po.ProductTagRel;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

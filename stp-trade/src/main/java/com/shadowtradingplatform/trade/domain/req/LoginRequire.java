@@ -1,4 +1,4 @@
-package com.shadowtradingplatform.trade.domain.dto;
+package com.shadowtradingplatform.trade.domain.req;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -21,7 +21,7 @@ import java.io.Serializable;
  */
 @Data
 @Schema(description = "登录请求参数（加密）")
-public class LoginReqDTO implements Serializable {
+public class LoginRequire implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

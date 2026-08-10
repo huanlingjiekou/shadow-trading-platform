@@ -1,7 +1,7 @@
 package com.shadowtradingplatform.trade.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.shadowtradingplatform.trade.domain.UserCoupon;
+import com.shadowtradingplatform.trade.domain.po.UserCoupon;
 import com.shadowtradingplatform.trade.service.UserCouponService;
 import com.shadowtradingplatform.trade.mapper.UserCouponMapper;
 import org.springframework.stereotype.Service;

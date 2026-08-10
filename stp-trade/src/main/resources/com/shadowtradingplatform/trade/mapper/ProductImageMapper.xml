@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.shadowtradingplatform.trade.mapper.ProductImageMapper">
 
-    <resultMap id="BaseResultMap" type="com.shadowtradingplatform.trade.domain.ProductImage">
+    <resultMap id="BaseResultMap" type="com.shadowtradingplatform.trade.domain.po.ProductImage">
             <id property="id" column="id" />
             <result property="product_id" column="product_id" />
             <result property="image_url" column="image_url" />

@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.shadowtradingplatform.trade.mapper.UserCouponMapper">
 
-    <resultMap id="BaseResultMap" type="com.shadowtradingplatform.trade.domain.UserCoupon">
+    <resultMap id="BaseResultMap" type="com.shadowtradingplatform.trade.domain.po.UserCoupon">
             <id property="id" column="id" />
             <result property="user_id" column="user_id" />
             <result property="coupon_id" column="coupon_id" />

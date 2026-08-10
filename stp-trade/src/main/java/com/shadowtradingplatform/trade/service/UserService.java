@@ -2,8 +2,8 @@ package com.shadowtradingplatform.trade.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shadowtradingplatform.trade.common.R;
-import com.shadowtradingplatform.trade.domain.User;
-import com.shadowtradingplatform.trade.domain.dto.LoginReqDTO;
+import com.shadowtradingplatform.trade.domain.po.User;
+import com.shadowtradingplatform.trade.domain.req.LoginRequire;
 import com.shadowtradingplatform.trade.domain.vo.UserInfoVO;
 
 /**
@@ -24,7 +24,7 @@ public interface UserService extends IService<User> {
      * @param req 加密后的登录请求参数
      * @return 登录结果（含 token）
      */
-    R<UserInfoVO> login(LoginReqDTO req);
+    R<UserInfoVO> login(LoginRequire req);
 
     /**
      * 用户退出登录.
