@@ -2,10 +2,15 @@ package com.shadowtradingplatform.trade.controller;
 
 import com.shadowtradingplatform.trade.common.R;
 import com.shadowtradingplatform.trade.context.UserContext;
+import com.shadowtradingplatform.trade.domain.req.CartAddReq;
+import com.shadowtradingplatform.trade.domain.req.CartRemoveReq;
+import com.shadowtradingplatform.trade.domain.req.CartSelectReq;
+import com.shadowtradingplatform.trade.domain.req.CartUpdateReq;
 import com.shadowtradingplatform.trade.domain.vo.CartItemVO;
 import com.shadowtradingplatform.trade.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -43,12 +48,11 @@ public class CartController {
      */
     @PostMapping("/cart/add")
     @Operation(summary = "添加商品到购物车")
-    public R<List<CartItemVO>> add(@RequestParam Long productId,
-                                   @RequestParam(defaultValue = "1") Integer quantity) {
+    public R<List<CartItemVO>> add(@Valid @RequestBody CartAddReq req) {
         if (!UserContext.isLogin()) {
             return R.fail("未登录");
         }
-        return R.success(cartService.addToCart(productId, quantity));
+        return R.success(cartService.addToCart(req.getProductId(), req.getQuantity()));
     }
 
     /**
@@ -56,12 +60,11 @@ public class CartController {
      */
     @PostMapping("/cart/update")
     @Operation(summary = "更新购物车项数量")
-    public R<List<CartItemVO>> update(@RequestParam Long id,
-                                      @RequestParam Integer quantity) {
+    public R<List<CartItemVO>> update(@Valid @RequestBody CartUpdateReq req) {
         if (!UserContext.isLogin()) {
             return R.fail("未登录");
         }
-        return R.success(cartService.updateCart(id, quantity));
+        return R.success(cartService.updateCart(req.getId(), req.getQuantity()));
     }
 
     /**
@@ -69,11 +72,11 @@ public class CartController {
      */
     @PostMapping("/cart/remove")
     @Operation(summary = "移除购物车项")
-    public R<List<CartItemVO>> remove(@RequestParam Long id) {
+    public R<List<CartItemVO>> remove(@Valid @RequestBody CartRemoveReq req) {
         if (!UserContext.isLogin()) {
             return R.fail("未登录");
         }
-        return R.success(cartService.removeFromCart(id));
+        return R.success(cartService.removeFromCart(req.getId()));
     }
 
     /**
@@ -81,11 +84,11 @@ public class CartController {
      */
     @PostMapping("/cart/select")
     @Operation(summary = "切换购物车项选中状态")
-    public R<List<CartItemVO>> select(@RequestParam Long id) {
+    public R<List<CartItemVO>> select(@Valid @RequestBody CartSelectReq req) {
         if (!UserContext.isLogin()) {
             return R.fail("未登录");
         }
-        return R.success(cartService.toggleSelect(id));
+        return R.success(cartService.toggleSelect(req.getId()));
     }
 
     /**

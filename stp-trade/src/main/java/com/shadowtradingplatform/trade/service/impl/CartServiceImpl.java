@@ -52,8 +52,9 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
         }
 
         List<Cart> carts = list(new LambdaQueryWrapper<Cart>()
-                .eq(Cart::getUser_id, userId)
-                .orderByDesc(Cart::getCreate_time));
+                .eq(Cart::getUserId, userId)
+                .orderByDesc(Cart::getCreateTime));
+
         if (carts.isEmpty()) {
             return Collections.emptyList();
         }
@@ -80,23 +81,23 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
 
         // 2. 查询购物车是否已有该商品
         Cart existing = getOne(new LambdaQueryWrapper<Cart>()
-                .eq(Cart::getUser_id, userId)
-                .eq(Cart::getProduct_id, productId), false);
+                .eq(Cart::getUserId, userId)
+                .eq(Cart::getProductId, productId), false);
 
         if (existing != null) {
             // 已存在 -> 累加数量
             existing.setQuantity(existing.getQuantity() + quantity);
-            existing.setUpdate_time(LocalDateTime.now());
+            existing.setUpdateTime(LocalDateTime.now());
             updateById(existing);
         } else {
             // 不存在 -> 新建购物车项，默认未选中
             Cart cart = new Cart();
-            cart.setUser_id(userId);
-            cart.setProduct_id(productId);
+            cart.setUserId(userId);
+            cart.setProductId(productId);
             cart.setQuantity(quantity);
             cart.setSelected(0);
-            cart.setCreate_time(LocalDateTime.now());
-            cart.setUpdate_time(LocalDateTime.now());
+            cart.setCreateTime(LocalDateTime.now());
+            cart.setUpdateTime(LocalDateTime.now());
             save(cart);
         }
 
@@ -115,13 +116,13 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
         }
 
         Cart cart = getById(id);
-        if (cart == null || !userId.equals(cart.getUser_id())) {
+        if (cart == null || !userId.equals(cart.getUserId())) {
             log.warn("更新购物车失败：项不存在或不属于当前用户，id={}, userId={}", id, userId);
             return loadCartList();
         }
 
         cart.setQuantity(quantity);
-        cart.setUpdate_time(LocalDateTime.now());
+        cart.setUpdateTime(LocalDateTime.now());
         updateById(cart);
 
         return loadCartList();
@@ -135,7 +136,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
         }
 
         Cart cart = getById(id);
-        if (cart == null || !userId.equals(cart.getUser_id())) {
+        if (cart == null || !userId.equals(cart.getUserId())) {
             log.warn("移除购物车失败：项不存在或不属于当前用户，id={}, userId={}", id, userId);
             return loadCartList();
         }
@@ -155,7 +156,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
         }
 
         Cart cart = getById(id);
-        if (cart == null || !userId.equals(cart.getUser_id())) {
+        if (cart == null || !userId.equals(cart.getUserId())) {
             log.warn("切换选中失败：项不存在或不属于当前用户，id={}, userId={}", id, userId);
             return loadCartList();
         }
@@ -163,7 +164,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
         // 切换选中状态
         int newSelected = (cart.getSelected() != null && cart.getSelected() == 1) ? 0 : 1;
         cart.setSelected(newSelected);
-        cart.setUpdate_time(LocalDateTime.now());
+        cart.setUpdateTime(LocalDateTime.now());
         updateById(cart);
 
         // 同步 Redis 选中集合
@@ -185,7 +186,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
         }
 
         List<Cart> carts = list(new LambdaQueryWrapper<Cart>()
-                .eq(Cart::getUser_id, userId));
+                .eq(Cart::getUserId, userId));
         if (carts.isEmpty()) {
             return Collections.emptyList();
         }
@@ -200,7 +201,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
         List<Long> allIds = new ArrayList<>();
         for (Cart c : carts) {
             c.setSelected(target);
-            c.setUpdate_time(LocalDateTime.now());
+            c.setUpdateTime(LocalDateTime.now());
             allIds.add(c.getId());
         }
         updateBatchById(carts);
@@ -227,7 +228,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
 
         // 1. 批量查询商品信息
         Set<Long> productIds = carts.stream()
-                .map(Cart::getProduct_id)
+                .map(Cart::getProductId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         Map<Long, Product> productMap = new HashMap<>();
@@ -246,14 +247,14 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart>
         // 3. 组装 VO
         List<CartItemVO> voList = new ArrayList<>(carts.size());
         for (Cart c : carts) {
-            Product p = productMap.get(c.getProduct_id());
+            Product p = productMap.get(c.getProductId());
             if (p == null) {
                 // 商品已删除，跳过
                 continue;
             }
             CartItemVO vo = new CartItemVO();
             vo.setId(c.getId());
-            vo.setProductId(c.getProduct_id());
+            vo.setProductId(c.getProductId());
             vo.setName(p.getName());
             vo.setImage(p.getImage());
             vo.setPrice(p.getPrice());

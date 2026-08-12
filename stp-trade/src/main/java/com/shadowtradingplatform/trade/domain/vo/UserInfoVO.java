@@ -1,5 +1,6 @@
 package com.shadowtradingplatform.trade.domain.vo;
 
+import com.shadowtradingplatform.trade.annotation.LongToString;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -16,6 +17,7 @@ public class UserInfoVO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @LongToString
     @Schema(description = "用户ID", example = "1")
     private Long id;
 
