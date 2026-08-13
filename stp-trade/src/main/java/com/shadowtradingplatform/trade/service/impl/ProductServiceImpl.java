@@ -81,7 +81,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
         // 查询商品-标签关联
         List<ProductTagRel> rels = productTagRelService.list(
                 new LambdaQueryWrapper<ProductTagRel>()
-                        .in(ProductTagRel::getProduct_id, productIds));
+                        .in(ProductTagRel::getProductId, productIds));
         if (rels == null || rels.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -89,7 +89,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
         // 查询标签名称：过滤掉 rel 为 null 或 tag_id 为 null 的记录
         Set<Long> tagIds = rels.stream()
                 .filter(Objects::nonNull)
-                .map(ProductTagRel::getTag_id)
+                .map(ProductTagRel::getTagId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         List<Tag> tags=new ArrayList<>();
@@ -106,12 +106,12 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
         // 按 productId 分组（跳过 rel/tag_id/product_id 为 null 的记录）
         Map<Long, List<String>> result = new HashMap<>();
         for (ProductTagRel rel : rels) {
-            if (rel == null || rel.getProduct_id() == null || rel.getTag_id() == null) {
+            if (rel == null || rel.getProductId() == null || rel.getTagId() == null) {
                 continue;
             }
-            String tagName = tagNameMap.get(rel.getTag_id());
+            String tagName = tagNameMap.get(rel.getTagId());
             if (tagName != null) {
-                result.computeIfAbsent(rel.getProduct_id(), k -> new ArrayList<>()).add(tagName);
+                result.computeIfAbsent(rel.getProductId(), k -> new ArrayList<>()).add(tagName);
             }
         }
         return result;
@@ -141,7 +141,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
         vo.setName(product.getName());
         vo.setSubtitle(product.getSubtitle());
         vo.setPrice(product.getPrice());
-        vo.setOriginalPrice(product.getOriginal_price());
+        vo.setOriginalPrice(product.getOriginalPrice());
         vo.setImage(product.getImage());
         vo.setCategory(product.getCategory());
         vo.setSales(product.getSales());
@@ -159,10 +159,10 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
     private List<String> loadProductImages(Long productId) {
         List<ProductImage> images = productImageService.list(
                 new LambdaQueryWrapper<ProductImage>()
-                        .eq(ProductImage::getProduct_id, productId)
-                        .orderByAsc(ProductImage::getSort_order));
+                        .eq(ProductImage::getProductId, productId)
+                        .orderByAsc(ProductImage::getSortOrder));
         return images.stream()
-                .map(ProductImage::getImage_url)
+                .map(ProductImage::getImageUrl)
                 .filter(StringUtils::hasText)
                 .collect(Collectors.toList());
     }
@@ -176,7 +176,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
         vo.setName(p.getName());
         vo.setSubtitle(p.getSubtitle());
         vo.setPrice(p.getPrice());
-        vo.setOriginalPrice(p.getOriginal_price());
+        vo.setOriginalPrice(p.getOriginalPrice());
         vo.setImage(p.getImage());
         vo.setCategory(p.getCategory());
         vo.setSales(p.getSales());

@@ -1,0 +1,21 @@
+package com.shadowtradingplatform.trade.domain.req;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+import java.io.Serializable;
+
+/**
+ * 领取优惠券请求参数.
+ */
+@Data
+@Schema(description = "领取优惠券请求")
+public class CouponClaimReq implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @NotNull(message = "优惠券ID不能为空")
+    @Schema(description = "优惠券ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    private Long couponId;
+}
