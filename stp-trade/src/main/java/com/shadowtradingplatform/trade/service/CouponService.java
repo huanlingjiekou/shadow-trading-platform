@@ -33,6 +33,16 @@ public interface CouponService extends IService<Coupon> {
     void preloadToRedis(List<Long> couponIds);
 
     /**
+     * 直接预热所有有效优惠券到 Redis.
+     *
+     * <p>无需传入券 ID，自动查询当前所有有效券（status=0 且在有效期内）并预加载到 Redis，
+     * 适用于测试、手动触发或启动时全量预热。</p>
+     *
+     * @return 预热的优惠券数量
+     */
+    int preloadAllToRedis();
+
+    /**
      * 从 Redis 中移除优惠券缓存.
      */
     void evictFromRedis(Long couponId);

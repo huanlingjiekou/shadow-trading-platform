@@ -68,6 +68,12 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
     /** 分布式锁持有时间（秒） */
     private static final long LOCK_LEASE_SECONDS = 10L;
 
+    /** 布隆过滤器预期插入元素数量 */
+    private static final long BLOOM_FILTER_EXPECTED_INSERTIONS = 10_000L;
+
+    /** 布隆过滤器误判率 */
+    private static final double BLOOM_FILTER_FALSE_PROBABILITY = 0.01D;
+
     private final RedissonClient redissonClient;
     private final ObjectMapper objectMapper;
     private final UserCouponService userCouponService;
@@ -117,7 +123,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
 
         try {
             // 1. 布隆过滤器快速判断：券 ID 是否可能存在（防缓存穿透）
-            RBloomFilter<Long> bloomFilter = redissonClient.getBloomFilter(BLOOM_FILTER_NAME);
+            RBloomFilter<Long> bloomFilter = getOrCreateBloomFilter();
             if (!bloomFilter.contains(couponId)) {
                 log.warn("领取失败：券ID不存在(布隆过滤器拦截)，couponId={}", couponId);
                 return CouponClaimResp.fail(couponId, "优惠券不存在");
@@ -227,7 +233,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
             return;
         }
 
-        RBloomFilter<Long> bloomFilter = redissonClient.getBloomFilter(BLOOM_FILTER_NAME);
+        RBloomFilter<Long> bloomFilter = getOrCreateBloomFilter();
 
         for (Long couponId : couponIds) {
             Coupon coupon = this.getById(couponId);
@@ -257,6 +263,50 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
     }
 
     @Override
+    public int preloadAllToRedis() {
+        // 查询所有有效券（status=0 且在有效期内）
+        LocalDateTime now = LocalDateTime.now();
+        List<Coupon> coupons = list(new LambdaQueryWrapper<Coupon>()
+                .eq(Coupon::getStatus, 0)
+                .le(Coupon::getValidStart, now)
+                .ge(Coupon::getValidEnd, now));
+
+        if (coupons.isEmpty()) {
+            log.info("直接预热：没有需要预加载的有效优惠券");
+            return 0;
+        }
+
+        RBloomFilter<Long> bloomFilter = getOrCreateBloomFilter();
+        int count = 0;
+
+        for (Coupon coupon : coupons) {
+            try {
+                // 1. 写入布隆过滤器
+                bloomFilter.add(coupon.getId());
+
+                // 2. 缓存券信息
+                String infoKey = REDIS_COUPON_INFO_PREFIX + coupon.getId();
+                RBucket<String> bucket = redissonClient.getBucket(infoKey, StringCodec.INSTANCE);
+                bucket.set(objectMapper.writeValueAsString(coupon),
+                        COUPON_INFO_TTL_DAYS, TimeUnit.DAYS);
+
+                // 3. 初始化库存
+                syncStockToRedis(coupon);
+
+                count++;
+                log.info("直接预热优惠券：couponId={}, total={}, claimed={}",
+                        coupon.getId(), coupon.getTotal(), coupon.getClaimed());
+            } catch (JsonProcessingException e) {
+                log.error("直接预热优惠券失败：couponId={}, error={}",
+                        coupon.getId(), e.getMessage());
+            }
+        }
+
+        log.info("直接预热完成：共预热 {} 张优惠券", count);
+        return count;
+    }
+
+    @Override
     public void evictFromRedis(Long couponId) {
         if (couponId == null) {
             return;
@@ -275,6 +325,24 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
     }
 
     // ==================== 私有辅助方法 ====================
+
+    /**
+     * 获取布隆过滤器，若不存在则自动初始化.
+     *
+     * <p>使用 Redisson {@code tryInit} 方法：若布隆过滤器已存在则直接返回；
+     * 若不存在则按预设参数（预期 10000 元素、误判率 1%）初始化并返回。</p>
+     */
+    private RBloomFilter<Long> getOrCreateBloomFilter() {
+        RBloomFilter<Long> bloomFilter = redissonClient.getBloomFilter(BLOOM_FILTER_NAME);
+        boolean initialized = bloomFilter.tryInit(
+                BLOOM_FILTER_EXPECTED_INSERTIONS,
+                BLOOM_FILTER_FALSE_PROBABILITY);
+        if (initialized) {
+            log.info("布隆过滤器已自动初始化：name={}, expectedInsertions={}, falseProbability={}",
+                    BLOOM_FILTER_NAME, BLOOM_FILTER_EXPECTED_INSERTIONS, BLOOM_FILTER_FALSE_PROBABILITY);
+        }
+        return bloomFilter;
+    }
 
     /**
      * 同步券库存到 Redis.
